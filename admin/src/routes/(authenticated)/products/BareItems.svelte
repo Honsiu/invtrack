@@ -20,15 +20,13 @@
   const flipDurationMs = 300;
 </script>
 
-<table>
-  <TableHead>
-    <TableHeadCell></TableHeadCell>
-    <TableHeadCell>Nazwa</TableHeadCell>
-    <TableHeadCell>Jednostka</TableHeadCell>
-    <TableHeadCell>Data utworzenia</TableHeadCell>
-    <TableHeadCell>Step</TableHeadCell>
-    <TableHeadCell />
-  </TableHead>
+<div>
+  <TableHeadCell></TableHeadCell>
+  <TableHeadCell>Nazwa</TableHeadCell>
+  <TableHeadCell>Jednostka</TableHeadCell>
+  <TableHeadCell>Data utworzenia</TableHeadCell>
+  <TableHeadCell>Step</TableHeadCell>
+  <TableHeadCell />
   <tbody
     use:dndzone={{ items: itemsContainer.items, flipDurationMs }}
     on:consider={handleDndConsider}
@@ -36,7 +34,7 @@
   >
     {#each itemsContainer.items as item (item.id)}
       <tr animate:flip={{ duration: flipDurationMs }}>
-        <td use:dragHandle>
+        <td use:dragHandle aria-label={item.name}>
           <BarsOutline class="mr-1 h-2 w-2" />
         </td>
         <TableBodyCell>
@@ -56,9 +54,8 @@
           <Button class="hover:underline" href={`/items/${item.id}/price`}>Wykres ceny</Button>
         </TableBodyCell>
       </tr>
-    {/each}
-    {#if itemsContainer.items.length <= 0}
+    {:else}
       <div>...</div>
-    {/if}
+    {/each}
   </tbody>
-</table>
+</div>

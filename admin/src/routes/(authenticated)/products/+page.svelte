@@ -27,8 +27,8 @@
 
 <ScreenCard header="Produkty">
   {#if categories}
-    <BareItems itemsContainer={uncategorisedProductsContainer} {setUnsavedChanges} />
-    <Boxes {boxesContainer} {setUnsavedChanges}></Boxes>
+    <Boxes {boxesContainer} itemsContainer={uncategorisedProductsContainer} {setUnsavedChanges}
+    ></Boxes>
   {/if}
   <div class="mt-2 flex flex-wrap justify-center gap-4 md:justify-start">
     <Button class="hover:underline" href={`/products/add`}>Dodaj produkt</Button>
