@@ -4,98 +4,31 @@
     AccordionItem,
     Button,
     Table,
-    TableBody,
-    TableBodyCell,
-    TableBodyRow,
     TableHead,
     TableHeadCell,
   } from "flowbite-svelte";
   import ScreenCard from "$lib/ScreenCard.svelte";
-  import { parseISODatestring } from "$lib/dates/parseISODatestring";
+  import BareItems from "./BareItems.svelte";
+  import Boxes from "./Boxes.svelte";
 
   export let data;
+
+  let loading = false;
+  let unsavedChanges = false;
+  let company_id: number | null = null;
+
   let { categories, uncategorisedProducts } = data;
+
+  let uncategorisedProductsContainer = { items: uncategorisedProducts || [] };
+  let boxesContainer = { boxes: categories || [] };
+  const flipDurationMs = 200;
+  const setUnsavedChanges = () => (unsavedChanges = true);
 </script>
 
 <ScreenCard header="Produkty">
   {#if categories}
-    <Accordion flush multiple>
-      {#if uncategorisedProducts && uncategorisedProducts.length > 0}
-        <AccordionItem class=" min-w-max">
-          <span slot="header">Brak kategorii</span>
-          <Table>
-            <TableHead>
-              <TableHeadCell>Nazwa</TableHeadCell>
-              <TableHeadCell>Jednostka</TableHeadCell>
-              <TableHeadCell>Data utworzenia</TableHeadCell>
-              <TableHeadCell>Step</TableHeadCell>
-              <TableHeadCell />
-            </TableHead>
-            <TableBody>
-              {#each uncategorisedProducts as product}
-                <TableBodyRow>
-                  <TableBodyCell>
-                    {product.name}
-                  </TableBodyCell>
-                  <TableBodyCell>
-                    {product.unit}
-                  </TableBodyCell>
-                  <TableBodyCell>
-                    {parseISODatestring(product.created_at)}
-                  </TableBodyCell>
-                  <TableBodyCell>
-                    {product.steps.map((step) => " " + step)}
-                  </TableBodyCell>
-                  <TableBodyCell>
-                    <Button class="hover:underline" href={`/products/${product.id}`}>Edytuj</Button>
-                    <Button class="hover:underline" href={`/products/${product.id}/price`}
-                      >Wykres ceny</Button
-                    >
-                  </TableBodyCell>
-                </TableBodyRow>
-              {/each}
-            </TableBody>
-          </Table>
-        </AccordionItem>
-      {/if}
-
-      {#each categories.filter((category) => category.items.length > 0) as category}
-        <AccordionItem class="min-w-max">
-          <span slot="header">{category.name}</span>
-          <Table>
-            <TableHead>
-              <TableHeadCell>Nazwa</TableHeadCell>
-              <TableHeadCell>Jednostka</TableHeadCell>
-              <TableHeadCell>Data utworzenia</TableHeadCell>
-              <TableHeadCell>Step</TableHeadCell>
-              <TableHeadCell />
-            </TableHead>
-            {#each category.items as product}
-              <TableBodyRow>
-                <TableBodyCell>
-                  {product.name}
-                </TableBodyCell>
-                <TableBodyCell>
-                  {product.unit}
-                </TableBodyCell>
-                <TableBodyCell>
-                  {parseISODatestring(product.created_at)}
-                </TableBodyCell>
-                <TableBodyCell>
-                  {product.steps.map((step) => " " + step)}
-                </TableBodyCell>
-                <TableBodyCell>
-                  <Button class="hover:underline" href={`/products/${product.id}`}>Edytuj</Button>
-                  <Button class="hover:underline" href={`/products/${product.id}/price`}
-                    >Wykres ceny</Button
-                  >
-                </TableBodyCell>
-              </TableBodyRow>
-            {/each}
-          </Table>
-        </AccordionItem>
-      {/each}
-    </Accordion>
+    <BareItems itemsContainer={uncategorisedProductsContainer} {setUnsavedChanges} />
+    <Boxes {boxesContainer} {setUnsavedChanges}></Boxes>
   {/if}
   <div class="mt-2 flex flex-wrap justify-center gap-4 md:justify-start">
     <Button class="hover:underline" href={`/products/add`}>Dodaj produkt</Button>
