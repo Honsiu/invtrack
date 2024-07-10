@@ -1,26 +1,27 @@
 import React from "react";
 import {
   FieldValues,
-  UseControllerProps,
   useController,
+  UseControllerProps,
 } from "react-hook-form";
 
 import { View, ViewStyle } from "react-native";
 import { TextInput, TextInputProps } from "./TextInput";
 import { Typography } from "./Typography";
 
-type TextInputControllerProps<T extends FieldValues> = UseControllerProps<T> & {
-  textInputProps?: Omit<TextInputProps, "onChange"> & {
-    containerStyle?: ViewStyle;
+type NumberInputControllerProps<T extends FieldValues> =
+  UseControllerProps<T> & {
+    textInputProps?: Omit<TextInputProps, "onChange"> & {
+      containerStyle?: ViewStyle;
+    };
   };
-};
 /**
  * be vary when setting the `value` prop explicitly here
  */
-export const TextInputController = <T extends FieldValues>({
+export const NumberInputController = <T extends FieldValues>({
   textInputProps,
   ...props
-}: TextInputControllerProps<T>) => {
+}: NumberInputControllerProps<T>) => {
   const {
     field: { onChange, onBlur, ref, value },
     fieldState: { error },
@@ -32,8 +33,8 @@ export const TextInputController = <T extends FieldValues>({
     <View style={containerStyle}>
       <TextInput
         {...restTextInputProps}
-        onChange={onChange}
-        value={restTextInputProps?.value || value}
+        onChange={(text) => onChange(+text)}
+        value={value}
         onBlur={onBlur}
         ref={ref}
       />
@@ -50,4 +51,4 @@ export const TextInputController = <T extends FieldValues>({
   );
 };
 
-export default TextInputController;
+export default NumberInputController;

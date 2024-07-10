@@ -10,8 +10,11 @@ import { ProductListBottomSheetContent } from "../../components/BottomSheet/cont
 import { Button } from "../../components/Button";
 import { DropdownButton } from "../../components/DropdownButton";
 import { EmptyScreenTemplate } from "../../components/EmptyScreenTemplate";
+import { IDListCardAddProduct } from "../../components/IDListCardAddProduct";
+import { IndexBadge } from "../../components/IndexBadge";
 import { useSnackbar } from "../../components/Snackbar/hooks";
 import { Typography } from "../../components/Typography";
+import { useListProductRecords } from "../../db";
 import { useCreateProductNameAlias } from "../../db/hooks/useCreateProductNameAlias";
 import { useListExistingProducts } from "../../db/hooks/useListProducts";
 import { IdentifyAliasesScreenNavigationProp } from "../../navigation/types";
@@ -22,6 +25,9 @@ import {
 import { useAppDispatch, useAppSelector } from "../../redux/hooks";
 import { createStyles } from "../../theme/useStyles";
 import { AliasForm } from "./types";
+
+const BADGE_SIDE_SIZE = 20;
+const PADDING = 4;
 
 // unique
 const aliasSet = new Set<string>([]);
@@ -62,13 +68,24 @@ export const IdentifyAliasesScreenInvoice = () => {
   const styles = useStyles();
   const { openBottomSheet, closeBottomSheet } = useBottomSheet();
   const { showInfo } = useSnackbar();
-  const dispatch = useAppDispatch();
-
   const { data: products } = useListExistingProducts();
-  const { mutate, isSuccess } = useCreateProductNameAlias();
+  const {
+    mutate,
+    isSuccess,
+    data: resolvedAliases,
+  } = useCreateProductNameAlias();
+
+  const dispatch = useAppDispatch();
+  const inventoryId = useAppSelector(documentScannerSelector.selectInventoryId);
   const aliases = useAppSelector(
     documentScannerSelector.selectInvoiceUnmatchedAliases
   );
+
+  const processedInvoice = useAppSelector(
+    documentScannerSelector.selectProcessedInvoice
+  );
+
+  const { data: productRecords } = useListProductRecords(inventoryId as number);
 
   const { setValue, handleSubmit, watch, getValues } = useForm<AliasForm>({
     defaultValues: async () =>
@@ -86,6 +103,26 @@ export const IdentifyAliasesScreenInvoice = () => {
   const usedAliases = watch("usedAliases");
   useEffect(() => {
     if (isSuccess) {
+      if (processedInvoice) {
+        let newMatched: typeof processedInvoice.form = [];
+
+        for (const name in processedInvoice.unmatched) {
+          const { price_per_unit, quantity } = processedInvoice.unmatched[name];
+          const alias = resolvedAliases?.find((alias) => alias.alias === name);
+          if (!alias || !alias.product_id) continue;
+          const { product_id } = alias;
+
+          const record = productRecords?.find(
+            (r) => r.product_id === product_id
+          );
+          if (!record || !record.id) continue;
+
+          newMatched[record.id] = { price_per_unit, quantity, product_id };
+        }
+
+        dispatch(documentScannerAction.SET_NEW_MATCHED({ newMatched }));
+      }
+      dispatch(documentScannerAction.RESET_PROCESSED_INVOICE());
       navigation.goBack();
     }
   }, [isSuccess]);
@@ -93,7 +130,11 @@ export const IdentifyAliasesScreenInvoice = () => {
   const handleSavePress = () => {
     handleSubmit(
       (data) => {
+        // New alisases are inserted into the db here
         mutate(data);
+        dispatch(documentScannerAction.PHOTO_RESET_DATA());
+        // dispatch(documentScannerAction.RESET_PROCESSED_INVOICE());
+        dispatch(documentScannerAction.PHOTO_RETAKE());
       },
       (_errors) => {
         // TODO show a snackbar? handle error better
@@ -104,6 +145,7 @@ export const IdentifyAliasesScreenInvoice = () => {
   const handleGoBackPress = () => {
     dispatch(documentScannerAction.PHOTO_RESET_DATA());
     dispatch(documentScannerAction.RESET_PROCESSED_INVOICE());
+    dispatch(documentScannerAction.PHOTO_RETAKE());
     navigation.replace("DocumentScannerModal", {
       isScanningSalesRaport: false,
     });
@@ -156,9 +198,17 @@ export const IdentifyAliasesScreenInvoice = () => {
           Zapisz zmiany
         </Button>
       </View>
+      <IDListCardAddProduct inventoryId={inventoryId} />
       {aliases.map((alias, i) => (
         <View key={i}>
-          <Badge isShown={usedAliases?.includes(alias)} />
+          <Badge
+            containerStyle={styles.checkmarkBadgePosition}
+            isShown={usedAliases?.includes(alias)}
+          />
+          <IndexBadge
+            containerStyle={styles.indexBadgePosition}
+            index={i + 1}
+          />
           <DropdownButton
             containerStyle={styles.dropdown}
             onPress={() =>
@@ -198,10 +248,22 @@ const useStyles = createStyles((theme) =>
       height: "100%",
       paddingHorizontal: theme.spacing * 2,
     },
-    dropdown: { marginBottom: theme.spacing, marginTop: -theme.spacing },
+    dropdown: { marginTop: -theme.spacing * 3 },
     saveButtonContainer: {
       marginTop: theme.spacing * 2,
       flexShrink: 1,
+    },
+    checkmarkBadgePosition: {
+      position: "relative",
+      top: BADGE_SIDE_SIZE - 10,
+      left: BADGE_SIDE_SIZE + PADDING + 5,
+      zIndex: 10,
+    },
+    indexBadgePosition: {
+      position: "relative",
+      top: -10,
+      left: 5,
+      zIndex: 10,
     },
   })
 );

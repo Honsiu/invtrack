@@ -1,6 +1,6 @@
 <script lang="ts">
   import { page } from "$app/stores";
-  import { getIsThemeDark, toggleDarkMode } from "$lib/scripts/darkMode";
+  import { reloadTheme, toggleDarkMode } from "$lib/scripts/darkMode";
   import {
     Sidebar,
     SidebarDropdownItem,
@@ -31,7 +31,7 @@
   import { genericGet } from "$lib/genericGet";
 
   export let supabase: any;
-  export let isThemeDark: boolean = true;
+
   $: activeUrl = $page.url.pathname;
   $: lowQuantityNotifications =
     lowQuantityProductRecords &&
@@ -50,6 +50,7 @@
   let isNotificationCenterModalOpen = false;
   export let lowQuantityProductRecords: LowQuantityProductRecords[] = [];
 
+  export let isThemeDark: boolean;
   onMount(() => {
     genericGet(supabase.from("low_quantity_product_records_view").select("*"), (x) => {
       lowQuantityProductRecords = x as LowQuantityProductRecords[];
@@ -63,7 +64,10 @@
     OneSignal.logout();
     goto("/auth", { replaceState: true });
   };
-
+  const activeClass =
+    "flex items-center p-2 text-base font-normal text-gray-900 bg-primary-100 dark:bg-gray-700 rounded-lg dark:text-white";
+  const nonActiveClass =
+    "flex items-center p-2 text-base font-normal text-gray-900 rounded-lg dark:text-white hover:bg-primary-200 dark:hover:bg-primary-800";
   export let hideSidebar: boolean;
   function toggleSidebar() {
     hideSidebar = !hideSidebar;
@@ -72,7 +76,9 @@
 
 <Sidebar
   {activeUrl}
-  class="absolute top-0 z-10 flex h-screen min-h-fit w-72 min-w-[18rem] flex-col justify-between overflow-auto bg-gray-200 px-4 md:sticky md:flex dark:bg-gray-800"
+  {activeClass}
+  {nonActiveClass}
+  class="bg-primary-50 z-10 flex min-h-screen w-72 min-w-[18rem] flex-col justify-between px-4 md:sticky md:top-0  md:flex md:h-max dark:bg-gray-800"
 >
   <div>
     <NotificationCenterModal
@@ -84,7 +90,7 @@
     {:else}
       <img src={logo_light} class="mb-8 mt-8 hidden md:inline-block" alt="InvTrack logo" />
     {/if}
-    <SidebarWrapper class="flex flex-col bg-gray-200 dark:bg-gray-800 ">
+    <SidebarWrapper class="bg-primary-50 flex flex-col dark:bg-gray-800 ">
       <SidebarGroup>
         <SidebarItem
           label="Powiadomienia"
@@ -109,7 +115,6 @@
         <SidebarItem label="Podsumowanie" href="/" on:click={() => toggleSidebar()}>
           <svelte:fragment slot="icon">
             <HomeSolid
-              active={activeUrl === "/"}
               class="h-6 w-6 text-gray-500 transition duration-75 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white"
             />
           </svelte:fragment>
@@ -117,7 +122,6 @@
         <SidebarItem label="Pracownicy" href="/workers" on:click={() => toggleSidebar()}>
           <svelte:fragment slot="icon">
             <UsersSolid
-              active={activeUrl === "/workers"}
               class="h-6 w-6 text-gray-500 transition duration-75 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white"
             />
           </svelte:fragment>
@@ -125,7 +129,6 @@
         <SidebarItem label="Inwentaryzacje" href="/inventories" on:click={() => toggleSidebar()}>
           <svelte:fragment slot="icon">
             <ListSolid
-              active={activeUrl === "/inventories"}
               class="h-6 w-6 text-gray-500 transition duration-75 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white"
             />
           </svelte:fragment>
@@ -133,7 +136,6 @@
         <SidebarItem label="Produkty" href="/products" on:click={() => toggleSidebar()}>
           <svelte:fragment slot="icon">
             <BriefcaseSolid
-              active={activeUrl === "/products"}
               class="h-6 w-6 text-gray-500 transition duration-75 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white"
             /></svelte:fragment
           >
@@ -141,26 +143,32 @@
         <SidebarItem label="Recepturownik" href="/recipes" on:click={() => toggleSidebar()}>
           <svelte:fragment slot="icon">
             <InboxFullSolid
-              active={activeUrl === "/recipes"}
               class="h-6 w-6 text-gray-500 transition duration-75 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white"
             /></svelte:fragment
           >
         </SidebarItem>
       </SidebarGroup>
       <SidebarGroup border>
-        <SidebarDropdownWrapper label="Twoje konto">
+        <SidebarDropdownWrapper
+          label="Twoje konto"
+          class="hover:bg-primary-200 dark:hover:bg-primary-800"
+        >
           <svelte:fragment slot="icon">
             <UsersSolid
-              class="h-6 w-6 text-gray-500 transition duration-75 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white"
+              class="h-6 w-6 text-gray-500 transition duration-75 group-hover:text-gray-900  dark:text-gray-400 dark:group-hover:text-white"
             />
           </svelte:fragment>
-          <SidebarDropdownItem label="Wyloguj" on:click={handleLogout} />
+          <SidebarDropdownItem
+            label="Wyloguj"
+            on:click={handleLogout}
+            class="hover:bg-red-300 dark:hover:bg-red-800"
+          />
         </SidebarDropdownWrapper>
       </SidebarGroup>
     </SidebarWrapper>
   </div>
   <div>
-    <SidebarWrapper class="mb-4 bg-gray-200 dark:bg-gray-800" border>
+    <SidebarWrapper class="bg-primary-50 mb-4 dark:bg-gray-800" border>
       <SidebarGroup class="flex flex-col">
         <h3 class="w-full rounded-lg text-base font-normal text-gray-900 dark:text-white">
           Zmień motyw

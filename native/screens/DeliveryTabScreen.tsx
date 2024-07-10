@@ -8,7 +8,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Button } from "../components/Button";
 import { Collapsible } from "../components/Collapsible/Collapsible";
 import { IDListCard } from "../components/IDListCard";
-import { IDListCardAdd } from "../components/IDListCardAdd";
+import { IDListCardAddProduct } from "../components/IDListCardAddProduct";
+import { IDListCardAddRecord } from "../components/IDListCardAddRecord";
 import { DocumentScannerIcon, ScanBarcodeIcon } from "../components/Icon";
 import { Skeleton } from "../components/Skeleton";
 import { useSnackbar } from "../components/Snackbar/hooks";
@@ -151,11 +152,15 @@ export default function DeliveryTabScreen({
                 <ScanBarcodeIcon size={34} color="lightGrey" />
               </Button>
             </View>
+            <IDListCardAddProduct inventoryId={inventoryId} />
+            <IDListCardAddRecord inventoryId={inventoryId} />
             {uncategorizedRecordList?.map((record) =>
               record ? (
                 <IDListCard
                   key={record.id}
                   recordId={record.id!}
+                  productId={record.product_id!}
+                  inventoryId={inventoryId}
                   id={+inventoryId}
                   quantity={
                     record.id
@@ -170,7 +175,6 @@ export default function DeliveryTabScreen({
                 <></>
               )
             )}
-            <IDListCardAdd inventoryId={inventoryId} />
           </ScrollView>
         }
         sections={categorizedRecordList?.map(({ title, data }, i) => ({
@@ -181,6 +185,8 @@ export default function DeliveryTabScreen({
               <IDListCard
                 key={record.id}
                 recordId={record.id!}
+                productId={record.product_id!}
+                inventoryId={inventoryId}
                 id={+inventoryId}
                 quantity={
                   record.id

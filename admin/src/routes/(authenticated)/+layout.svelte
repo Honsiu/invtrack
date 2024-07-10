@@ -1,7 +1,8 @@
 <script lang="ts">
   import { goto } from "$app/navigation";
   import Navbar from "$lib/navbar/Navbar.svelte";
-  import { getIsThemeDark } from "$lib/scripts/darkMode.js";
+
+  import { getTheme } from "$lib/scripts/darkMode.js";
   import Sidebar from "$lib/sidebar/Sidebar.svelte";
   import { Drawer } from "flowbite-svelte";
   import { onMount } from "svelte";
@@ -23,23 +24,28 @@
   let isThemeDark: boolean;
   onMount(() => {
     screenWidth = window.innerWidth;
-    isThemeDark = getIsThemeDark();
+    isThemeDark = getTheme() === "dark";
   });
 </script>
 
 <svelte:window bind:innerWidth={screenWidth} />
 
-<div class="flex flex-col">
+<div class="flex h-fit min-h-screen flex-col">
   <Navbar bind:hideSidebar bind:isThemeDark />
-  <div class="flex flex-row">
+  <div class="dark:bg-primary-900 flex h-fit min-h-screen flex-row bg-white">
     {#if screenWidth > 768}
       <Sidebar {supabase} bind:hideSidebar bind:isThemeDark />
     {:else}
-      <Drawer bind:hidden={hideSidebar} {transitionParams} transitionType="fly">
+      <Drawer
+        bind:hidden={hideSidebar}
+        {transitionParams}
+        transitionType="fly"
+        class="m-0 w-72 p-0"
+      >
         <Sidebar {supabase} bind:hideSidebar bind:isThemeDark />
       </Drawer>
     {/if}
-    <main class="dark:bg-primary-900 w-fit overflow-auto bg-white">
+    <main class="dark:bg-primary-900 w-full overflow-auto bg-white mb-16">
       <slot />
     </main>
   </div>
